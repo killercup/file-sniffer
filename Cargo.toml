@@ -16,6 +16,9 @@ clap = {version = "2.24", features = ["yaml"]}
 pad = "0.1"
 regex = "0.2"
 
+[profile.release]
+lto = true
+
 [lib]
 path = "src/lib.rs"
 name = "libsniff"

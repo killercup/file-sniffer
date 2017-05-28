@@ -7,6 +7,7 @@ subcommands:
         args:
             - dir:
                 help: Directory to search
+                value_name: DIRECTORY
                 index: 1
             - count: 
                 short: n
@@ -29,6 +30,7 @@ subcommands:
         about: Show big files/directories
         args:
             - dir:
+                value_name: DIRECTORY
                 help: Directory to search
             - threshhold:
                 short: t

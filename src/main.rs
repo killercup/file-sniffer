@@ -1,4 +1,5 @@
-#[macro_use] extern crate clap;
+#[macro_use]
+extern crate clap;
 
 extern crate libsniff;
 extern crate colored;
@@ -9,10 +10,11 @@ use clap::App;
 use colored::*;
 
 fn main() {
+
     // command-line parser
     let yaml = load_yaml!("options-en.yml");
     let matches = App::from_yaml(yaml).version(crate_version!()).get_matches();
-
+    
     if let Some(command) = matches.subcommand_matches("fat") {
 
         // set threshhold
