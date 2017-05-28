@@ -19,7 +19,7 @@ impl FileSize {
     }
 }
 
-#[derive(Ord, Eq, PartialEq, PartialOrd, Clone)]
+#[derive(Ord, Eq, PartialEq, PartialOrd)]
 pub struct NamePair {
     bytes: FileSize,
     name: PathBuf,
@@ -27,8 +27,8 @@ pub struct NamePair {
 }
 
 impl NamePair {
-    pub fn new(path: PathBuf, bytes_in: FileSize, d: u8) -> NamePair {
-        NamePair { name: path, bytes: bytes_in, depth: d }
+    pub fn new(path: &PathBuf, bytes_in: FileSize, d: u8) -> NamePair {
+        NamePair { name: path.to_owned(), bytes: bytes_in, depth: d }
     }
 }
 
@@ -43,50 +43,47 @@ impl Default for FileTree {
 }
 
 impl FileTree {
-    pub fn sort(&mut self, maybe_num: Option<usize>, maybe_depth: Option<u8>) -> () {
-        if let Some(n) = maybe_num {
-            self.files.sort();
-            self.files.reverse();
-            self.files = self.files.clone().into_iter()
-                .filter(|a| a.depth <= maybe_depth.unwrap() ) // FIXME no unwrap here
-                .take(n).collect();
+    pub fn sort(mut self, n: usize, d: u8) -> FileTree {
+        self.files.sort();
+        self.files.reverse();
+        self.files = self.files.into_iter()
+            .filter(|a| a.depth <= d )
+            .take(n).collect();
+        FileTree { file_size: self.file_size, files: self.files }
         }
-        else {
-            self.files.sort();
-            self.files.reverse();
-        }
+    pub fn sort_all(&mut self) -> () {
+        self.files.sort();
+        self.files.reverse();
     }
-    pub fn filtered(&mut self, maybe_depth: Option<u8>) -> () {
-        if let Some(d) = maybe_depth {
-                self.files = self.files.clone().into_iter() // TODO intelligent sorting w/ filters based on 
-                    .filter(|a| a.depth <= d)
-                    .collect();
-        }
-        else { () }
+    pub fn filtered(mut self, d: u8) -> FileTree {
+        self.files = self.files.into_iter() // TODO intelligent sorting w/ filters based on 
+            .filter(|a| a.depth <= d)
+            .collect();
+        FileTree { file_size: self.file_size, files: self.files }
     }
     pub fn new() -> FileTree {
         FileTree { file_size: FileSize::new(0), files: Vec::new() }
     }
-    pub fn push(&mut self, path: PathBuf, size: FileSize, subtree: Option<&mut FileTree>, depth: u8) -> () {
+    pub fn push(&mut self, path: &PathBuf, size: FileSize, subtree: Option<&mut FileTree>, depth: u8) -> () {
         self.file_size.add(size); // add subdirectory or file size to total
         if let Some(s) = subtree {
             self.files.append(&mut s.files); // add subtree if desired
         }
         self.files.push(NamePair::new(path, size, depth)); // tag file or subdirectory with its size
-        // by tracking total size nicely, we avoid the need to traverse the vector to sum it.
     }
     pub fn display_tree(&mut self, init_dir: PathBuf) -> () {
+
+        // total
+        let to_formatted = format!("{}", self.file_size);
+        let path = init_dir.display();
+        println!("{} {}", &to_formatted.pad_to_width(8), path);
+
         // subdirs &c.
         let vec = &self.files;
         for name_pair in vec {
             let to_formatted = format!("{}", name_pair.bytes);
             println!("{} {}", &to_formatted.pad_to_width(8), name_pair.name.display());
         }
-
-        // total
-        let to_formatted = format!("{}", self.file_size);
-        let path = init_dir.display(); // fix this!! better data structure
-        println!("{} {}", &to_formatted.pad_to_width(8), path);
     }
 }
 

@@ -25,15 +25,16 @@ fn main() {
                     _ => { println!("{}: invalid threshhold; defaulting to M", "Warning".yellow()) ; 1048576 }
                 }
             }
+            // default to a 1MB threshhold if not flag is used
             else { 1048576 };
 
         // set depth
         let depth = 
             if let Some(n) = command.value_of("depth") {
-                Some(n.parse::<u8>().expect("Please enter a positive whole number"))
+                n.parse::<u8>().expect("Please enter a positive whole number")
             }
             else {
-                Some(2)
+                2
             };
 
         // set path to dir
@@ -50,8 +51,8 @@ fn main() {
             };
 
         // decide what to print
-        let mut v = read_files(&init_dir, 0, Some(min_bytes));
-        v.filtered(depth);
+        let mut v = read_files(&init_dir, 0, min_bytes, depth);
+        //let mut v_filtered = v.filtered(depth);
 
         v.display_tree(init_dir);
     }
@@ -80,10 +81,10 @@ fn main() {
         // set depth
         let depth = 
             if let Some(n) = command.value_of("depth") {
-                Some(n.parse::<u8>().expect("Please enter a positive whole number"))
+                n.parse::<u8>().expect("Please enter a positive whole number")
             }
             else {
-                Some(2)
+                2
             };
 
         // set path to dir
@@ -99,10 +100,14 @@ fn main() {
                 PathBuf::from("./")
             };
 
-        let mut v = read_files(&init_dir, 0, min_bytes);
-        v.sort(Some(num_int), depth);
+        let v = 
+            if let Some(b) = min_bytes {
+                read_files(&init_dir, 0, b, depth)
+            }
+            else { read_files_no_min(&init_dir, 0, depth) };
+        let mut v_sorted = v.sort(num_int, depth);
 
-        v.display_tree(init_dir);
+        v_sorted.display_tree(init_dir);
     }
     else {
         println!("{}: Command not recognized. Try 'sniff --help' if you're stuck.", "Error".red());
